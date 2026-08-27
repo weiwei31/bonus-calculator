@@ -12,6 +12,7 @@
       --bg-color: #f0f7f6;
       --card-bg: #ffffff;
       --text-color: #2d3748;
+      --border-color: #e2e8f0;
     }
 
     body {
@@ -29,50 +30,74 @@
     .calculator-card {
       background: var(--card-bg);
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(38, 198, 182, 0.15);
       width: 100%;
-      max-width: 450px;
+      max-width: 480px;
     }
 
     h2 {
       margin-top: 0;
-      color: var(--primary-color);
+      margin-bottom: 20px;
+      color: var(--primary-dark);
       text-align: center;
     }
 
-    .form-group {
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 8px;
       margin-bottom: 15px;
+    }
+
+    .section-block {
+      background-color: #fafafa;
+      border: 1px solid var(--border-color);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
     }
 
     label {
       display: block;
       margin-bottom: 5px;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      color: #4a5568;
     }
 
     input {
       width: 100%;
       padding: 10px;
-      border: 1px solid #d1d5db;
+      border: 1.5px solid #cbd5e0;
       border-radius: 6px;
       box-sizing: border-box;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      background-color: #fff;
+      transition: all 0.2s;
     }
 
     input:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+      box-shadow: 0 0 0 3px rgba(38, 198, 182, 0.25);
     }
 
     .result-box {
-      margin-top: 25px;
+      margin-top: 15px;
       padding: 15px;
-      background-color: #eef2ff;
+      background-color: var(--primary-light);
       border-radius: 8px;
-      border-left: 4px solid var(--primary-color);
     }
 
     .result-item {
@@ -85,13 +110,13 @@
 
     .result-label {
       font-size: 0.85rem;
-      color: #4b5563;
+      color: #718096;
     }
 
     .result-value {
       font-size: 1.25rem;
       font-weight: bold;
-      color: var(--primary-color);
+      color: var(--primary-dark);
     }
   </style>
 </head>
@@ -100,29 +125,38 @@
 <div class="calculator-card">
   <h2>紅利點數計算機</h2>
   
-  <div class="form-group">
-    <label for="rewardRate">紅利回饋比例 (%)</label>
-    <input type="number" id="rewardRate" value="5" min="0" step="0.1" oninput="calculate()">
-  </div>
-
-  <div class="form-group">
-    <label for="maxDiscountRate">單筆折抵上限 (%)</label>
-    <input type="number" id="maxDiscountRate" value="20" min="0" max="100" step="0.1" oninput="calculate()">
-  </div>
-
-  <div class="form-group">
-    <label for="orderAmount">當前訂單金額 ($)</label>
-    <input type="number" id="orderAmount" value="1000" min="0" step="1" oninput="calculate()">
-  </div>
-
-  <div class="result-box">
-    <div class="result-item">
-      <div class="result-label">本筆訂單可獲得紅利：</div>
-      <div class="result-value" id="earnedPoints">0 點</div>
+  <div class="section-block">
+    <div class="section-title">第一區：系統規則設定</div>
+    <div class="form-group">
+      <label for="rewardRate">紅利回饋比例 (%)</label>
+      <input type="number" id="rewardRate" value="5" min="0" step="0.1" oninput="calculate()">
     </div>
-    <div class="result-item" style="margin-top: 15px;">
-      <div class="result-label">下一筆全額折抵該紅利所需最低消費：</div>
-      <div class="result-value" id="minNextOrder">NT$ 0</div>
+    <div class="form-group">
+      <label for="maxDiscountRate">單筆折抵上限 (%)</label>
+      <input type="number" id="maxDiscountRate" value="20" min="0" max="100" step="0.1" oninput="calculate()">
+    </div>
+  </div>
+
+  <div class="section-block">
+    <div class="section-title">第二區：訂單試算與結果</div>
+    <div class="form-group">
+      <label for="orderAmount">當前訂單金額 ($)</label>
+      <input type="number" id="orderAmount" value="1000" min="0" step="1" oninput="calculate()">
+    </div>
+    <div class="form-group">
+      <label for="discountAmount">使用紅利折抵金額 ($)</label>
+      <input type="number" id="discountAmount" value="0" min="0" step="1" oninput="calculate()">
+    </div>
+
+    <div class="result-box">
+      <div class="result-item">
+        <div class="result-label">本筆訂單可獲得紅利：</div>
+        <div class="result-value" id="earnedPoints">0 點</div>
+      </div>
+      <div class="result-item" style="margin-top: 12px;">
+        <div class="result-label">下一筆全額折抵該紅利所需最低消費：</div>
+        <div class="result-value" id="minNextOrder">NT$ 0</div>
+      </div>
     </div>
   </div>
 </div>
@@ -132,11 +166,15 @@
     const rewardRate = parseFloat(document.getElementById('rewardRate').value) || 0;
     const maxDiscountRate = parseFloat(document.getElementById('maxDiscountRate').value) || 0;
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
+    const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
 
-    // 計算獲得點數 (無條件捨去小數點)
-    const earnedPoints = Math.floor(orderAmount * (rewardRate / 100));
+    // 計算實際可計點的金額：當前金額 - 折抵金額 (若小於 0 則計為 0)
+    const netAmount = Math.max(0, orderAmount - discountAmount);
+
+    // 獲得紅利點數 = (當前訂單金額 - 折抵金額) * 紅利%，無條件捨去
+    const earnedPoints = Math.floor(netAmount * (rewardRate / 100));
     
-    // 計算下一筆最低消費： 點數 / (折抵上限 %)
+    // 下一筆最低消費 = 獲得點數 / 折抵上限%，無條件進位
     let minNextOrder = 0;
     if (maxDiscountRate > 0) {
       minNextOrder = Math.ceil(earnedPoints / (maxDiscountRate / 100));
