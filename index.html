@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>紅利點數計算機</title>
+  <title>官網紅利點數計算機</title>
   <style>
     :root {
       --primary-color: #26C6B6;
@@ -13,6 +13,8 @@
       --card-bg: #ffffff;
       --text-color: #2d3748;
       --border-color: #e2e8f0;
+      --error-color: #e53e3e;
+      --error-bg: #fff5f5;
     }
 
     body {
@@ -61,7 +63,8 @@
     }
 
     .form-group {
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+      position: relative;
     }
 
     .form-group:last-child {
@@ -74,6 +77,13 @@
       font-weight: 600;
       font-size: 0.85rem;
       color: #4a5568;
+    }
+
+    .input-hint {
+      font-size: 0.75rem;
+      color: #718096;
+      float: right;
+      font-weight: normal;
     }
 
     input {
@@ -91,6 +101,22 @@
       outline: none;
       border-color: var(--primary-color);
       box-shadow: 0 0 0 3px rgba(38, 198, 182, 0.25);
+    }
+
+    input.input-error {
+      border-color: var(--error-color);
+      background-color: var(--error-bg);
+    }
+
+    input.input-error:focus {
+      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2);
+    }
+
+    .error-msg {
+      color: var(--error-color);
+      font-size: 0.75rem;
+      margin-top: 4px;
+      display: none;
     }
 
     .result-box {
@@ -125,29 +151,36 @@
 <div class="calculator-card">
   <h2>紅利點數計算機</h2>
   
+  <!-- 第一區：系統規則設定 -->
   <div class="section-block">
     <div class="section-title">第一區：系統規則設定</div>
     <div class="form-group">
       <label for="rewardRate">紅利回饋比例 (%)</label>
-      <input type="number" id="rewardRate" value="5" min="0" step="0.1" oninput="calculate()">
+      <input type="number" id="rewardRate" value="5" min="0" max="100" step="0.1" oninput="calculate()">
     </div>
     <div class="form-group">
       <label for="maxDiscountRate">單筆折抵上限 (%)</label>
-      <input type="number" id="maxDiscountRate" value="20" min="0" max="100" step="0.1" oninput="calculate()">
+      <input type="number" id="maxDiscountRate" value="30" min="0" max="100" step="0.1" oninput="calculate()">
     </div>
   </div>
 
+  <!-- 第二區：訂單試算與結果 -->
   <div class="section-block">
     <div class="section-title">第二區：訂單試算與結果</div>
     <div class="form-group">
       <label for="orderAmount">當前訂單金額 ($)</label>
-      <input type="number" id="orderAmount" value="1000" min="0" step="1" oninput="calculate()">
+      <input type="number" id="orderAmount" value="6000" min="0" step="1" oninput="calculate()">
     </div>
     <div class="form-group">
-      <label for="discountAmount">使用紅利折抵金額 ($)</label>
+      <label for="discountAmount">
+        使用紅利折抵金額 ($)
+        <span class="input-hint" id="maxDiscountHint">上限: $0</span>
+      </label>
       <input type="number" id="discountAmount" value="0" min="0" step="1" oninput="calculate()">
+      <div class="error-msg" id="discountError">⚠️ 折抵金額已超過上限！系統已自動以最高上限計算。</div>
     </div>
 
+    <!-- 結果呈現區 -->
     <div class="result-box">
       <div class="result-item">
         <div class="result-label">本筆訂單可獲得紅利：</div>
@@ -163,15 +196,45 @@
 
 <script>
   function calculate() {
-    const rewardRate = parseFloat(document.getElementById('rewardRate').value) || 0;
-    const maxDiscountRate = parseFloat(document.getElementById('maxDiscountRate').value) || 0;
-    const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
-    const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+    // 取得輸入值
+    let rewardRate = parseFloat(document.getElementById('rewardRate').value) || 0;
+    let maxDiscountRate = parseFloat(document.getElementById('maxDiscountRate').value) || 0;
+    let orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
+    let discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
 
-    // 計算實際可計點的金額：當前金額 - 折抵金額 (若小於 0 則計為 0)
-    const netAmount = Math.max(0, orderAmount - discountAmount);
+    // 基本防呆：不允許負數
+    if (rewardRate < 0) rewardRate = 0;
+    if (maxDiscountRate < 0) maxDiscountRate = 0;
+    if (orderAmount < 0) orderAmount = 0;
+    if (discountAmount < 0) discountAmount = 0;
 
-    // 獲得紅利點數 = (當前訂單金額 - 折抵金額) * 紅利%，無條件捨去
+    // 計算當前訂單允許的【最高折抵金額上限】 (無條件捨去至整數)
+    const allowedMaxDiscount = Math.floor(orderAmount * (maxDiscountRate / 100));
+    
+    // 更新提示文字
+    document.getElementById('maxDiscountHint').innerText = `上限: $${allowedMaxDiscount.toLocaleString()}`;
+
+    // 防呆處理：檢查折抵金額是否超過上限
+    const discountInput = document.getElementById('discountAmount');
+    const discountError = document.getElementById('discountError');
+
+    let actualDiscount = discountAmount;
+
+    if (discountAmount > allowedMaxDiscount) {
+      // 超過上限，顯示警示框並限制計算金額
+      discountInput.classList.add('input-error');
+      discountError.style.display = 'block';
+      actualDiscount = allowedMaxDiscount;
+    } else {
+      // 正常範圍
+      discountInput.classList.remove('input-error');
+      discountError.style.display = 'none';
+    }
+
+    // 計算實際可計點金額 = 當前金額 - 實際使用的折抵金額
+    const netAmount = Math.max(0, orderAmount - actualDiscount);
+
+    // 獲得紅利點數 = (淨金額) * 紅利%，無條件捨去
     const earnedPoints = Math.floor(netAmount * (rewardRate / 100));
     
     // 下一筆最低消費 = 獲得點數 / 折抵上限%，無條件進位
